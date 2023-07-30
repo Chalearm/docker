@@ -1,0 +1,32 @@
+# Use the Arch Linux base image
+FROM archlinux:latest
+
+# Update package manager and install required packages for ASM development
+RUN pacman -Syu --noconfirm \
+    && pacman -S --noconfirm \
+       openssh vi arm-none-eabi-gcc \
+       binutils
+
+
+# Set up a non-root user to run the application and SSH server
+RUN useradd -ms /bin/bash appuser
+RUN echo "root:root" | chpasswd
+RUN echo "appuser:appuser" | chpasswd
+RUN sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config
+
+# Generate SSH host keys for the container (optional but recommended for secure SSH connections)
+RUN ssh-keygen -A
+
+# grant the "appuser" user the ability to use the sudo command
+# to allows the "appuser" to run any command with sudo without requiring a password.
+RUN echo 'appuser ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
+
+
+# Expose the SSH port
+EXPOSE 22
+# Start the SSH server and keep it running in the background
+CMD ["/usr/bin/sshd", "-D", "-e"]
+
+
+# Set the working directory
+WORKDIR /app
