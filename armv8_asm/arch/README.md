@@ -21,12 +21,9 @@ docker build -t armv8asmapp .
 
 # run command
 docker run -d -p 2222:22 -v ".":/app  --name armv8asmapp1 armv8asmapp
-or
-
 
 # ssh access
 ssh -p 2222 root@localhost
-
 
 
 cat /etc/os-release 
