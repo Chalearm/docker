@@ -1,0 +1,32 @@
+# Base image: Arch Linux
+FROM archlinux:latest
+
+# Update package databases and install required packages
+RUN pacman -Syu --noconfirm
+RUN pacman -S --noconfirm openssh 
+
+# Set up a non-root user to run the application and SSH server
+RUN useradd -ms /bin/bash appuser
+RUN echo "root:root" | chpasswd
+RUN echo "appuser:appuser" | chpasswd
+RUN sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config
+
+# Generate SSH host keys for the container (optional but recommended for secure SSH connections)
+RUN ssh-keygen -A
+
+# grant the "appuser" user the ability to use the sudo command
+# to allows the "appuser" to run any command with sudo without requiring a password.
+RUN echo 'appuser ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
+
+
+# Switch to appuser
+#USER appuser
+
+# (Optional) Clean up the package cache to reduce the image size (only root can do this)
+RUN pacman -Scc --noconfirm
+
+
+# Expose the SSH port
+EXPOSE 22
+# Start the SSH server and keep it running in the background
+CMD ["/usr/bin/sshd", "-D", "-e"]

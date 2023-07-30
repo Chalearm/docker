@@ -1,0 +1,28 @@
+# Base image
+FROM ubuntu:latest
+
+# Set environment variables
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Update and install necessary packages
+RUN apt-get update && \
+    apt-get install -y \
+        openssh-server \
+        vim \
+        && rm -rf /var/lib/apt/lists/*
+
+
+# Configure SSH
+RUN mkdir /var/run/sshd
+RUN echo 'root:root' | chpasswd
+RUN sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config
+EXPOSE 22
+
+# Set working directory
+WORKDIR /app
+
+# Enable file editing and storage
+VOLUME ["/app"]
+
+# Start SSH service
+CMD ["/usr/sbin/sshd", "-D"]
